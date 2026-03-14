@@ -1698,7 +1698,8 @@
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div>
                                     <label class="block text-sm font-medium text-textSecondary mb-1">Paciente *</label>
-                                    <input type="text" id="ol-paciente" required placeholder="Buscar paciente..." class="w-full px-4 py-2 border border-border rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                    <input type="text" id="ol-paciente" required list="patients-list" placeholder="Buscar o seleccionar..." class="w-full px-4 py-2 border border-border rounded-lg outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                    <datalist id="patients-list"></datalist>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-textSecondary mb-1">Médico Solicitante *</label>
@@ -3801,6 +3802,38 @@
             { cat:'🤰 Perfil Obstétrico', exams:['Prueba de embarazo (β-hCG)','TORCH completo','Glucosa en embarazo'] }
         ];
 
+        const LAB_FIELDS_MAPPING = {
+            'Hemograma completo (BHC)': [
+                { p: 'Hemoglobina', ref: '13.5-17.5 g/dL' },
+                { p: 'Hematocrito', ref: '40-52 %' },
+                { p: 'Leucocitos', ref: '4.5-11.0 x10³/µL' },
+                { p: 'Neutrófilos', ref: '40-70 %' },
+                { p: 'Linfocitos', ref: '20-40 %' },
+                { p: 'Plaquetas', ref: '150-400 x10³/µL' }
+            ],
+            'Glucosa en ayunas': [{ p: 'Glucosa', ref: '70-100 mg/dL' }],
+            'HbA1c': [{ p: 'Hemoglobina Glicosilada', ref: '4.0-5.6 %' }],
+            'Creatinina': [{ p: 'Creatinina', ref: '0.7-1.3 mg/dL' }],
+            'BUN (Nitrógeno ureico)': [{ p: 'BUN', ref: '7-20 mg/dL' }],
+            'Ácido úrico': [{ p: 'Ácido Úrico', ref: '3.4-7.0 mg/dL' }],
+            'Colesterol total': [{ p: 'Colesterol Total', ref: '< 200 mg/dL' }],
+            'Triglicéridos': [{ p: 'Triglicéridos', ref: '< 150 mg/dL' }],
+            'Examen general de orina (EGO)': [
+                { p: 'Color', ref: 'Amarillo' },
+                { p: 'Aspecto', ref: 'Limpio' },
+                { p: 'Densidad', ref: '1.005-1.030' },
+                { p: 'pH', ref: '5.0-8.0' },
+                { p: 'Leucocitos', ref: 'Negativo' },
+                { p: 'Nitritos', ref: 'Negativo' },
+                { p: 'Proteínas', ref: 'Negativo' },
+                { p: 'Glucosa', ref: 'Negativo' }
+            ],
+            'TGO (AST)': [{ p: 'TGO', ref: '5-40 U/L' }],
+            'TGP (ALT)': [{ p: 'TGP', ref: '7-56 U/L' }],
+            'TSH': [{ p: 'TSH', ref: '0.4-4.0 mIU/L' }],
+            'Prueba de embarazo (β-hCG)': [{ p: 'β-hCG', ref: 'Negativo' }]
+        };
+
         let selectedExams = new Set();
 
         function buildExamsAccordion() {
@@ -3874,17 +3907,27 @@
             const cont = document.getElementById('lab-results-feed');
             if(!cont) return;
             if(results.length === 0) { cont.innerHTML = '<p class="text-sm text-textSecondary text-center py-4">No hay resultados recientes</p>'; return; }
-            cont.innerHTML = results.map(r => `
-            <div class="border rounded-xl p-4 bg-secondary/5 border-secondary/30 animate-fade-in">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-xs font-bold uppercase tracking-wider text-secondary">🟢 Verificado</span>
-                    <span class="text-xs text-textSecondary">${r.fecha}</span>
-                </div>
-                <p class="font-semibold text-textPrimary text-sm">Paciente: ${r.patientId}</p>
-                <p class="text-xs text-textSecondary">Tec: ${r.tecnico}</p>
-                <p class="text-xs text-textSecondary mt-1">${r.observaciones}</p>
-                <button onclick="nav('laboratorio-resultados')" class="mt-3 text-xs text-primary font-semibold hover:underline">Ver resultados →</button>
-            </div>`).join('');
+            cont.innerHTML = results.map(r => {
+                let resSummary = '';
+                if(r.resultados && r.resultados['Hemograma']) {
+                    const h = r.resultados['Hemograma'];
+                    resSummary = `<div class="mt-2 p-2 bg-white rounded border border-secondary/20 grid grid-cols-2 gap-x-4 gap-y-1 text-[10px]">
+                        ${Object.entries(h).map(([k,v]) => `<div class="flex justify-between"><span>${k}:</span> <span class="font-bold ${v.ok===false?'text-danger':''}">${v.v}</span></div>`).join('')}
+                    </div>`;
+                }
+                return `
+                <div class="border rounded-xl p-4 bg-secondary/5 border-secondary/30 animate-fade-in">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-secondary">🟢 Verificado</span>
+                        <span class="text-xs text-textSecondary">${r.fecha}</span>
+                    </div>
+                    <p class="font-semibold text-textPrimary text-sm">Paciente: ${r.patientId}</p>
+                    <p class="text-xs text-textSecondary">Tec: ${r.tecnico}</p>
+                    ${resSummary}
+                    <p class="text-xs text-textSecondary mt-1 italic">"${r.observaciones}"</p>
+                    <button onclick="verPerfil('${r.patientId}')" class="mt-3 text-xs text-primary font-semibold hover:underline">Ver Perfil Completo →</button>
+                </div>`;
+            }).join('');
         }
 
         function renderLabPendingOrders() {
@@ -3899,8 +3942,18 @@
                 <td class="p-3 text-xs text-textSecondary">${o.examenes.slice(0,2).join(', ')}${o.examenes.length>2 ? '...':''}</td>
                 <td class="p-3"><span class="px-2 py-1 text-xs rounded-full ${urgColMap[o.urgencia] || 'bg-gray-100'}">${o.urgencia}</span></td>
                 <td class="p-3 text-xs">${o.estado}</td>
-                <td class="p-3"><button onclick="nav('laboratorio-resultados')" class="text-xs text-primary hover:underline font-medium">Ingresar →</button></td>
+                <td class="p-3"><button onclick="abrirIngresoResultados('${o.id}')" class="text-xs text-primary hover:underline font-medium">Ingresar →</button></td>
             </tr>`).join('') || '<tr><td colspan="5" class="p-4 text-center text-textSecondary text-sm">No hay órdenes pendientes</td></tr>';
+        }
+
+        function abrirIngresoResultados(orderId) {
+            const orders = JSON.parse(localStorage.getItem('flycare_lab_orders') || '[]');
+            const found = orders.find(o => o.id === orderId);
+            const cont = document.getElementById('resultados-form-container');
+            if(!cont || !found) return;
+            renderIngresarResultadosForm(found, cont);
+            // Auto scroll to form
+            cont.scrollIntoView({ behavior: 'smooth' });
         }
 
         function buscarOrdenLab() {
@@ -3914,37 +3967,69 @@
         }
 
         function renderIngresarResultadosForm(order, cont) {
-            const hemFields = [['Hemoglobina','13.5-17.5 g/dL'],['Hematocrito','40-52%'],['Leucocitos','4.5-11.0 x10³'],['Neutrófilos','40-70%'],['Linfocitos','20-40%'],['Plaquetas','150-400 x10³']];
-            cont.innerHTML = `<div class="bg-white rounded-xl shadow-card border border-border overflow-hidden">
-                <div class="p-5 border-b border-border bg-primary/5">
-                    <h3 class="font-bold text-textPrimary">Orden: ${order.id}</h3>
-                    <p class="text-sm text-textSecondary mt-1">Paciente: <strong>${order.patientName || order.patientId}</strong> | Médico: ${order.doctor} | Urgencia: <span class="text-danger font-medium">${order.urgencia}</span></p>
+            let html = `<div class="bg-white rounded-xl shadow-card border border-border overflow-hidden animate-fade-in">
+                <div class="p-5 border-b border-border bg-primary/5 flex justify-between items-start">
+                    <div>
+                        <h3 class="font-bold text-textPrimary text-lg">Orden: ${order.id}</h3>
+                        <p class="text-sm text-textSecondary mt-1">
+                            Paciente: <strong class="text-textPrimary">${order.patientName || order.patientId}</strong> (${order.patientId}) | 
+                            Médico: ${order.doctor} | 
+                            Urgencia: <span class="text-danger font-medium">${order.urgencia}</span>
+                        </p>
+                    </div>
                 </div>
-                <div class="p-6 space-y-4">
-                    <h4 class="font-semibold text-textPrimary">Hemograma Completo</h4>
+                <div class="p-6 space-y-8">`;
+
+            order.examenes.forEach(exName => {
+                const fields = LAB_FIELDS_MAPPING[exName] || [{ p: 'Resultado General', ref: 'N/A' }];
+                html += `
+                <div class="space-y-3">
+                    <h4 class="font-bold text-primary flex items-center gap-2">
+                        <i data-lucide="flask-conical" class="w-4 h-4"></i>
+                        ${exName}
+                    </h4>
                     <div class="overflow-x-auto">
                         <table class="w-full border-collapse border border-border text-sm">
                             <thead><tr class="bg-gray-50"><th class="p-2 border border-border text-left">Parámetro</th><th class="p-2 border border-border text-left">Valor</th><th class="p-2 border border-border text-left">Referencia</th></tr></thead>
                             <tbody>
-                                ${hemFields.map(([p,ref]) => `<tr><td class="p-2 border border-border font-medium">${p}</td><td class="p-2 border border-border"><input type="number" step="0.01" placeholder="..." class="res-field w-full px-2 py-1 border border-border rounded outline-none focus:border-primary" data-ref="${ref.replace(/[^\d.\-]/g,' ').trim()}" oninput="flagResult(this,'${ref}')"></td><td class="p-2 border border-border text-textSecondary text-xs">${ref}</td></tr>`).join('')}
+                                ${fields.map(f => `
+                                <tr>
+                                    <td class="p-2 border border-border font-medium bg-gray-50/50">${f.p}</td>
+                                    <td class="p-2 border border-border">
+                                        <input type="text" placeholder="..." 
+                                            class="res-field w-full px-2 py-1.5 border border-border rounded outline-none focus:border-primary transition-colors" 
+                                            data-exam="${exName}" 
+                                            data-param="${f.p}" 
+                                            data-ref="${f.ref}"
+                                            oninput="flagResult(this,'${f.ref}')">
+                                    </td>
+                                    <td class="p-2 border border-border text-textSecondary text-xs">${f.ref}</td>
+                                </tr>`).join('')}
                             </tbody>
                         </table>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-textSecondary mb-1">Observaciones del Laboratorista</label>
-                        <textarea id="res-obs" rows="3" class="w-full px-4 py-2 border border-border rounded-lg outline-none focus:border-primary text-sm" placeholder="Observaciones..."></textarea>
+                </div>`;
+            });
+
+            html += `
+                    <div class="pt-4 border-t border-border">
+                        <label class="block text-sm font-bold text-textPrimary mb-2">Conclusiones y Observaciones del Laboratorista</label>
+                        <textarea id="res-obs" rows="3" class="w-full px-4 py-2 border border-border rounded-lg outline-none focus:border-primary text-sm bg-gray-50/30" placeholder="Ej: Se observa ligera hemólisis, corroborar clínicamente..."></textarea>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <input type="checkbox" id="res-verificado" class="w-4 h-4">
-                        <label for="res-verificado" class="text-sm font-medium">Confirmo que los valores ingresados han sido verificados y son correctos</label>
+                    <div class="flex items-center gap-3 p-4 bg-secondary/5 rounded-xl border border-secondary/20">
+                        <input type="checkbox" id="res-verificado" class="w-5 h-5 cursor-pointer accent-secondary">
+                        <label for="res-verificado" class="text-sm font-medium text-secondary cursor-pointer">Confirmo que todos los valores ingresados corresponden a la muestra analizada y han sido validados.</label>
                     </div>
                     <div class="flex gap-3 justify-end">
-                        <button onclick="publicarResultados('${order.id}')" class="px-6 py-2.5 bg-secondary hover:bg-secondary/90 text-white rounded-lg font-semibold flex items-center gap-2 shadow-md">
-                            <i data-lucide="check-circle" class="w-4 h-4"></i> Verificar y Publicar
+                        <button onclick="nav('laboratorio')" class="px-6 py-2.5 border border-border text-textSecondary rounded-lg font-semibold hover:bg-gray-50">Cancelar</button>
+                        <button onclick="publicarResultados('${order.id}')" class="px-8 py-2.5 bg-secondary hover:bg-secondary/90 text-white rounded-lg font-bold flex items-center gap-2 shadow-lg transition-transform active:scale-95">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i> Publicar y Notificar Médicos
                         </button>
                     </div>
                 </div>
             </div>`;
+
+            cont.innerHTML = html;
             lucide.createIcons();
         }
 
@@ -3976,20 +4061,30 @@
 
             // Capture results for AI and History
             const results = JSON.parse(localStorage.getItem('flycare_lab_results') || '[]');
-            const hemogramaVals = {};
+            const rawResults = {};
             
             document.querySelectorAll('.res-field').forEach(input => {
-                const paramName = input.closest('tr').querySelector('td').textContent;
-                const value = parseFloat(input.value);
-                const ref = input.dataset.ref;
-                const parts = ref.split('-');
+                const exName = input.dataset.exam;
+                const param  = input.dataset.param;
+                const value  = input.value;
+                const ref    = input.dataset.ref;
+                
+                // Quantitative check if possible
                 let ok = true;
-                if(parts.length === 2) {
-                    const min = parseFloat(parts[0]);
-                    const max = parseFloat(parts[1]);
-                    if(value < min || value > max) ok = false;
+                const numVal = parseFloat(value);
+                if(!isNaN(numVal)) {
+                    const range = ref.match(/[\d.]+/g);
+                    if(range && range.length === 2) {
+                        const min = parseFloat(range[0]);
+                        const max = parseFloat(range[1]);
+                        if(numVal < min || numVal > max) ok = false;
+                    }
+                } else if(value.toLowerCase() !== ref.toLowerCase() && ref.toLowerCase() !== 'n/a') {
+                    if(ref.toLowerCase() === 'negativo' && value.toLowerCase() !== 'negativo' && value.trim() !== '') ok = false;
                 }
-                hemogramaVals[paramName] = { v: value, ref: ref, ok: ok };
+
+                if(!rawResults[exName]) rawResults[exName] = {};
+                rawResults[exName][param] = { v: value, ref: ref, ok: ok };
             });
 
             const newResult = {
@@ -3999,20 +4094,18 @@
                 tecnico: 'Lic. Alvarado',
                 fecha: new Date().toLocaleString('es-SV'),
                 observaciones: document.getElementById('res-obs').value,
-                resultados: {
-                    'Hemograma': hemogramaVals
-                }
+                resultados: rawResults
             };
 
             results.unshift(newResult);
             localStorage.setItem('flycare_lab_results', JSON.stringify(results));
 
-            showToast('Resultados publicados. 🤖 IA analizando...', 'success');
+            showToast('Resultados publicados. AI analizando diagnóstico...', 'success');
             
             // Trigger AI Analysis
             setTimeout(() => {
                 analyzePatientWithAI(order.patientId);
-                showToast('🤖 IA completó el análisis de los nuevos resultados.', 'info');
+                showToast('🤖 IA generó un nuevo diagnóstico clínico.', 'info');
             }, 1500);
 
             nav('laboratorio');
@@ -4026,31 +4119,113 @@
             selectedExams.clear();
             buildExamsAccordion();
             updateExamCounter();
+            
+            // Populate patients datalist
+            const ptn = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
+            const list = document.getElementById('patients-list');
+            if(list) {
+                list.innerHTML = ptn.map(p => `<option value="${p.nombre}">${p.id}</option>`).join('');
+            }
         };
 
         // ==========================================
         // IA MÉDICA ANALYSIS ENGINE
         // ==========================================
+        const MEDICAL_PATTERNS = [
+            {
+                id: 'anemia',
+                name: 'Anemia',
+                layman: 'Nivel bajo de glóbulos rojos en la sangre',
+                logic: (r) => (r['Hemograma completo (BHC)']?.['Hemoglobina']?.ok === false && r['Hemograma completo (BHC)']?.['Hemoglobina']?.v < 13),
+                recs: ['Solicitar perfil de hierro (Ferritina, Transferrina)', 'Evaluar frotis de sangre periférica', 'Indagar sobre pérdidas hemáticas']
+            },
+            {
+                id: 'infection_bacterial',
+                name: 'Infección Bacteriana Probable',
+                layman: 'Posible infección causada por bacterias',
+                logic: (r) => (r['Hemograma completo (BHC)']?.['Leucocitos']?.v > 11 && r['Hemograma completo (BHC)']?.['Neutrófilos']?.v > 70),
+                recs: ['Considerar inicio de antibioticoterapia empírica', 'Solicitar cultivos (Hemocultivo/Urocultivo)', 'Monitorear curva febril']
+            },
+            {
+                id: 'diabetes_uncontrolled',
+                name: 'Diabetes Mellitus Descompensada',
+                layman: 'Niveles de azúcar muy altos, riesgo de complicaciones',
+                logic: (r) => (r['Glucosa en ayunas']?.['Glucosa']?.v > 126 || r['HbA1c']?.['Hemoglobina Glicosilada']?.v > 6.5),
+                recs: ['Ajuste de dosis de hipoglicemiantes/insulina', 'Evaluar función renal y fondo de ojo', 'Educación en dieta y estilo de vida']
+            },
+            {
+                id: 'kidney_failure',
+                name: 'Insuficiencia Renal Probable',
+                layman: 'Problemas en el riñón para filtrar la sangre',
+                logic: (r) => (r['Creatinina']?.['Creatinina']?.v > 1.3 || r['BUN (Nitrógeno ureico)']?.['BUN']?.v > 20),
+                recs: ['Solicitar Ultrasonido Renal', 'Control de líquidos y electrolitos', 'Evitar medicamentos nefrotóxicos (AINEs)']
+            },
+            {
+                id: 'uti',
+                name: 'Infección de Vías Urinarias (IVU)',
+                layman: 'Infección en el sistema urinario (vejiga o riñones)',
+                logic: (r) => (r['Examen general de orina (EGO)']?.['Nitritos']?.v === 'Positivo' || r['Examen general de orina (EGO)']?.['Leucocitos']?.v === 'Positivo'),
+                recs: ['Iniciar tratamiento antibiótico específico', 'Asegurar hidratación abundante', 'Realizar urocultivo de seguimiento']
+            }
+        ];
+
         function analyzePatientWithAI(patientId) {
             const patients = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
-            const patient = patients.find(p => p.id === patientId) || { nombre: 'Paciente', id: patientId };
             const labs = JSON.parse(localStorage.getItem('flycare_lab_results') || '[]').filter(r => r.patientId === patientId);
-            const lastLab = labs[labs.length - 1];
-            const labAnalysis = lastLab ? buildLabAnalysis(lastLab) : null;
-            const riesgo = calcularRiesgo(lastLab);
-            const similar = buscarCasosSimilares(patient);
+            
+            if(labs.length === 0) return null;
+            
+            const lastLab = labs[0];
+            const previousLab = labs[1];
+            
+            // 1. Identify Patterns
+            const detectedPatterns = MEDICAL_PATTERNS.filter(p => p.logic(lastLab.resultados || {}));
+            
+            // 2. Identify all abnormalities
+            const abnormalities = [];
+            if(lastLab.resultados) {
+                Object.entries(lastLab.resultados).forEach(([ex, tests]) => {
+                    Object.entries(tests).forEach(([p, data]) => {
+                        if(data.ok === false) abnormalities.push({ ex, p, v: data.v, ref: data.ref });
+                    });
+                });
+            }
+
+            // 3. Determine Risk and Trend
+            let risk = 'BAJO';
+            if(abnormalities.length > 5 || detectedPatterns.length >= 2) risk = 'CRÍTICO';
+            else if(abnormalities.length > 2) risk = 'ALTO';
+            else if(abnormalities.length > 0) risk = 'MODERADO';
+
+            let trend = 'Estable';
+            if(previousLab) {
+                const prevAbnormal = [];
+                Object.values(previousLab.resultados || {}).forEach(g => Object.values(g).forEach(v => { if(!v.ok) prevAbnormal.push(v); }));
+                if(abnormalities.length > prevAbnormal.length) trend = 'Deterioro';
+                else if(abnormalities.length < prevAbnormal.length) trend = 'Mejoría';
+            }
+
             const analysis = {
                 id: 'AI-' + Date.now(),
                 patientId,
                 generated_at: new Date().toLocaleString('es-SV'),
-                risk_level: riesgo,
-                lab_analysis: labAnalysis,
-                similar_cases: similar
+                risk_level: risk,
+                trend: trend,
+                patterns: detectedPatterns,
+                abnormalities: abnormalities,
+                recommendations: [...new Set(detectedPatterns.flatMap(p => p.recs))]
             };
+
             let analyses = JSON.parse(localStorage.getItem('flycare_ai_analyses') || '[]');
             analyses = analyses.filter(a => a.patientId !== patientId);
             analyses.push(analysis);
             localStorage.setItem('flycare_ai_analyses', JSON.stringify(analyses));
+            
+            // Update UI if in IA page
+            if(document.getElementById('ai-current-patient')?.value === patientId) {
+                renderAIAnalysis(analysis);
+            }
+            
             return analysis;
         }
 
@@ -4064,8 +4239,99 @@
             }
             if(score === 0) return 'BAJO';
             if(score <= 2) return 'MODERADO';
-            if(score <= 4) return 'ALTO';
+            if(score <= 5) return 'ALTO';
             return 'CRÍTICO';
+        }
+
+        function renderAIAnalysis(ana) {
+            const cont = document.getElementById('ai-analysis-container');
+            if(!cont || !ana) return;
+
+            const riskColors = { 
+                BAJO: 'bg-secondary/10 text-secondary border-secondary/20', 
+                MODERADO: 'bg-warning/10 text-warning border-warning/20', 
+                ALTO: 'bg-danger/10 text-danger border-danger/20', 
+                CRÍTICO: 'bg-danger/20 text-danger border-danger/30 font-bold animate-pulse' 
+            };
+
+            const trendIcons = {
+                'Mejoría': '<i data-lucide="trending-up" class="w-4 h-4 text-secondary"></i>',
+                'Deterioro': '<i data-lucide="trending-down" class="w-4 h-4 text-danger"></i>',
+                'Estable': '<i data-lucide="minus" class="w-4 h-4 text-textSecondary"></i>'
+            };
+
+            cont.innerHTML = `
+            <div class="space-y-6 animate-fade-in">
+                <!-- Header Stats -->
+                <div class="flex items-center justify-between p-4 bg-white rounded-xl border border-border shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="px-3 py-1 rounded-full text-xs font-bold border ${riskColors[ana.risk_level]}">
+                            ${ana.risk_level}
+                        </div>
+                        <div class="flex items-center gap-2 text-sm text-textSecondary">
+                            <span>Tendencia:</span>
+                            <span class="font-semibold flex items-center gap-1">
+                                ${trendIcons[ana.trend]} ${ana.trend}
+                            </span>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-textSecondary italic">Actualizado: ${ana.generated_at}</span>
+                </div>
+
+                <!-- Clinical Impression (The "Why" and "What") -->
+                <div class="bg-primary/5 border border-primary/20 rounded-xl p-6">
+                    <h3 class="flex items-center gap-2 font-bold text-primary mb-4">
+                        <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                        Impresión Clínica (Diagnóstico Presuntivo)
+                    </h3>
+                    ${ana.patterns.length > 0 ? ana.patterns.map(p => `
+                        <div class="mb-4 last:mb-0">
+                            <div class="text-lg font-bold text-textPrimary">${p.name}</div>
+                            <div class="text-sm text-textSecondary italic mb-2">(${p.layman})</div>
+                        </div>
+                    `).join('') : '<p class="text-sm text-textSecondary italic">No se detectan síndromes clínicos específicos, pero existen hallazgos aislados.</p>'}
+                </div>
+
+                <!-- Key Findings -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gray-50 border border-border rounded-xl p-5">
+                        <h4 class="font-bold text-textPrimary text-sm mb-3 flex items-center gap-2">
+                            <i data-lucide="microscope" class="w-4 h-4"></i> Hallazgos de Laboratorio
+                        </h4>
+                        <div class="space-y-2">
+                            ${ana.abnormalities.map(a => `
+                                <div class="text-xs flex justify-between items-center p-2 bg-white rounded border border-border">
+                                    <span class="font-medium">${a.p}:</span>
+                                    <span class="text-danger font-bold">${a.v} <span class="text-[10px] font-normal text-textSecondary">(Ref: ${a.ref})</span></span>
+                                </div>
+                            `).join('') || '<p class="text-xs text-secondary font-medium">Todos los parámetros normales.</p>'}
+                        </div>
+                    </div>
+
+                    <div class="bg-white border border-border rounded-xl p-5">
+                        <h4 class="font-bold text-textPrimary text-sm mb-3 flex items-center gap-2">
+                            <i data-lucide="clipboard-check" class="w-4 h-4"></i> Recomendaciones Médicas
+                        </h4>
+                        <ul class="space-y-2">
+                            ${ana.recommendations.map(r => `
+                                <li class="text-xs flex gap-2 items-start">
+                                    <i data-lucide="arrow-right-circle" class="w-3 h-3 mt-0.5 text-primary"></i>
+                                    <span>${r}</span>
+                                </li>
+                            `).join('') || '<li class="text-xs text-textSecondary italic">Continuar monitoreo estándar.</li>'}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Disclaimer -->
+                <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">
+                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                    <p class="text-[10px] text-amber-700 leading-tight">
+                        <strong>Nota Importante:</strong> Este análisis es generado por IA asistencial basada en patrones clínicos. Debe ser validado por un médico colegiado antes de tomar decisiones terapéuticas o diagnósticas definitivas.
+                    </p>
+                </div>
+            </div>`;
+            lucide.createIcons();
         }
 
         function buildLabAnalysis(lab) {
@@ -4805,7 +5071,24 @@
             const c = document.getElementById('ia-analysis-container');
             if(!c) return;
             logActivity('ia', 'ia_medica', `Análisis IA consultado para ${name}`, patientId);
-            c.innerHTML = renderAIBox ? renderAIBox(patientId) : '<p class="text-textSecondary text-sm p-4">Cargando análisis...</p>';
+            
+            // Generate or get analysis
+            const analyses = JSON.parse(localStorage.getItem('flycare_ai_analyses') || '[]');
+            let analysis = analyses.find(a => a.patientId === patientId);
+            if(!analysis) {
+                analysis = analyzePatientWithAI(patientId);
+            }
+            
+            if(analysis) {
+                renderAIAnalysis(analysis);
+            } else {
+                c.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-card border border-border p-10 text-center">
+                    <div class="text-4xl mb-4 text-warning">⚠️</div>
+                    <h3 class="font-bold text-lg text-textPrimary mb-2">Sin Datos Clínicos</h3>
+                    <p class="text-textSecondary text-sm">Este paciente no tiene resultados de laboratorio registrados para analizar.</p>
+                </div>`;
+            }
         }
 
         // ==========================================
@@ -4815,8 +5098,7 @@
         function logout() {
             localStorage.removeItem('flycare_user');
             window.location.hash = '';
-            showPage('login');
-            showToast('Sesión cerrada correctamente', 'success');
+            window.location.reload();
         }
 
         // ==========================================
