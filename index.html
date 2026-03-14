@@ -324,7 +324,7 @@
             </header>
 
             <!-- CONTENT VIEWS -->
-            <main class="flex-1 overflow-y-auto p-4 md:p-6 bg-background">
+            <main id="pages-container" class="flex-1 overflow-y-auto p-4 md:p-6 bg-background">
                 
                 <!-- PLACEHOLDER FOR PAGES (Will be filled below) -->
                 <!-- DASHBOARD PAGE -->
@@ -613,6 +613,13 @@
 
                 <!-- PEFIL DE PACIENTE PAGE -->
                 <div id="page-perfil-paciente" class="page space-y-6">
+                    <div class="flex items-center gap-4 mb-4">
+                        <button onclick="nav('expedientes')" class="p-2 text-textSecondary hover:text-primary transition-colors bg-white rounded-lg border border-border">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <h2 class="text-xl font-bold text-textPrimary">Ficha del Paciente</h2>
+                    </div>
+
                     <!-- Header Card -->
                     <div class="bg-white p-6 rounded-xl shadow-card border border-border relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-10 -mt-20 pointer-events-none"></div>
@@ -623,7 +630,7 @@
                             <div class="flex-1">
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
                                     <h2 id="perfil-nombre" class="text-3xl font-bold text-textPrimary">Carlos Martínez</h2>
-                                    <span class="px-3 py-1 bg-gray-100 text-textSecondary text-xs rounded-full font-medium border border-border">ID: FC-00124</span>
+                                    <span id="perfil-id-badge" class="px-3 py-1 bg-gray-100 text-textSecondary text-xs rounded-full font-medium border border-border">ID: FC-00124</span>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-4 text-sm text-textSecondary">
                                     <span class="flex items-center gap-1"><i data-lucide="cake" class="w-4 h-4"></i> 34 años</span>
@@ -632,43 +639,82 @@
                                 </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 shrink-0 w-full md:w-auto mt-4 md:mt-0">
-                                <button class="px-4 py-2 border border-border rounded-lg text-textSecondary hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"><i data-lucide="edit" class="w-4 h-4"></i> Editar</button>
-                                <button class="px-4 py-2 text-primary bg-primary/10 rounded-lg hover:bg-primary/20 flex items-center justify-center gap-2 transition-colors font-medium"><i data-lucide="calendar" class="w-4 h-4"></i> Nueva Cita</button>
-                                <button class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 flex items-center justify-center gap-2 transition-colors font-medium"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Expediente</button>
+                                <button onclick="abrirEditarPerfil()" class="px-4 py-2 border border-border rounded-lg text-textSecondary hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"><i data-lucide="edit" class="w-4 h-4"></i> Editar</button>
+                                <button onclick="abrirModalCita()" class="px-4 py-2 text-primary bg-primary/10 rounded-lg hover:bg-primary/20 flex items-center justify-center gap-2 transition-colors font-medium"><i data-lucide="calendar" class="w-4 h-4"></i> Nueva Cita</button>
+                                <button onclick="setProfileTab('expediente')" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 flex items-center justify-center gap-2 transition-colors font-medium"><i data-lucide="clipboard-list" class="w-4 h-4"></i> Expediente</button>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Navigation Tabs -->
                     <div class="bg-white rounded-xl shadow-card border border-border overflow-hidden">
-                        <div class="flex overflow-x-auto border-b border-border hide-scrollbar">
-                            <button class="px-6 py-4 text-sm font-medium text-primary border-b-2 border-primary whitespace-nowrap">Información General</button>
-                            <button class="px-6 py-4 text-sm font-medium text-textSecondary hover:text-textPrimary whitespace-nowrap">Expediente Clínico</button>
-                            <button class="px-6 py-4 text-sm font-medium text-textSecondary hover:text-textPrimary whitespace-nowrap">Historial de Citas</button>
-                            <button class="px-6 py-4 text-sm font-medium text-textSecondary hover:text-textPrimary whitespace-nowrap">Documentos</button>
+                        <div class="flex overflow-x-auto border-b border-border hide-scrollbar" id="perfil-tabs-nav">
+                            <button onclick="setProfileTab('general')" class="profile-tab-btn px-6 py-4 text-sm font-medium text-primary border-b-2 border-primary whitespace-nowrap">Información General</button>
+                            <button onclick="setProfileTab('expediente')" class="profile-tab-btn px-6 py-4 text-sm font-medium text-textSecondary hover:text-textPrimary whitespace-nowrap">Expediente Clínico</button>
+                            <button onclick="setProfileTab('citas')" class="profile-tab-btn px-6 py-4 text-sm font-medium text-textSecondary hover:text-textPrimary whitespace-nowrap">Historial de Citas</button>
+                            <button onclick="setProfileTab('docs')" class="profile-tab-btn px-6 py-4 text-sm font-medium text-textSecondary hover:text-textPrimary whitespace-nowrap">Documentos</button>
                         </div>
                         <div class="p-6">
-                            <!-- Tab Content Demo (Info General) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+                            <!-- Tab: General -->
+                            <div id="tab-profile-general" class="profile-tab-content grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
                                 <!-- Personal info card -->
                                 <div class="border border-border rounded-lg p-5 bg-gray-50/50">
                                     <h3 class="text-sm font-bold text-textPrimary uppercase tracking-wider mb-4 flex items-center gap-2"><i data-lucide="user" class="w-4 h-4 text-primary"></i> Datos Personales</h3>
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">DUI</span><span class="text-textPrimary font-medium text-sm">05943210-9</span></div>
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Fecha Nacimiento</span><span class="text-textPrimary font-medium text-sm">15/04/1990</span></div>
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Género</span><span class="text-textPrimary font-medium text-sm">Masculino</span></div>
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Estado Civil</span><span class="text-textPrimary font-medium text-sm">Soltero</span></div>
+                                    <div class="space-y-3" id="perfil-data-personales">
+                                        <!-- Injected via JS -->
                                     </div>
                                 </div>
                                 <!-- Contact info card -->
                                 <div class="border border-border rounded-lg p-5 bg-gray-50/50">
                                     <h3 class="text-sm font-bold text-textPrimary uppercase tracking-wider mb-4 flex items-center gap-2"><i data-lucide="phone" class="w-4 h-4 text-primary"></i> Contacto</h3>
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Teléfono</span><span class="text-textPrimary font-medium text-sm">7890-1234</span></div>
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Email</span><span class="text-textPrimary font-medium text-sm">carlos.m@email.com</span></div>
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Departamento</span><span class="text-textPrimary font-medium text-sm">San Salvador</span></div>
-                                        <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Emergencia</span><span class="text-textPrimary font-medium text-sm">Ana López (7777-8888)</span></div>
+                                    <div class="space-y-3" id="perfil-data-contacto">
+                                        <!-- Injected via JS -->
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Tab: Expediente Clinico -->
+                            <div id="tab-profile-expediente" class="profile-tab-content hidden space-y-6">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-textPrimary flex items-center gap-2"><i data-lucide="clipboard-list" class="w-5 h-5 text-secondary"></i> Notas de Evolución</h3>
+                                    <button onclick="openModal('modal-nueva-nota')" class="text-xs bg-secondary text-white px-3 py-1.5 rounded-lg font-bold flex items-center gap-1 hover:bg-secondary/90 transition-colors">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Nueva Nota
+                                    </button>
+                                </div>
+                                <div class="relative pl-8 space-y-8 before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-border" id="perfil-expediente-timeline">
+                                    <!-- Injected via JS -->
+                                </div>
+                            </div>
+
+                            <!-- Tab: Historial Citas -->
+                            <div id="tab-profile-citas" class="profile-tab-content hidden">
+                                <h3 class="font-bold text-textPrimary mb-4 flex items-center gap-2"><i data-lucide="calendar" class="w-5 h-5 text-primary"></i> Historial de Citas</h3>
+                                <div class="overflow-x-auto border border-border rounded-xl">
+                                    <table class="w-full text-left text-sm">
+                                        <thead class="bg-gray-50 border-b border-border">
+                                            <tr>
+                                                <th class="px-4 py-3 font-semibold">Fecha</th>
+                                                <th class="px-4 py-3 font-semibold">Hora</th>
+                                                <th class="px-4 py-3 font-semibold">Doctor</th>
+                                                <th class="px-4 py-3 font-semibold">Motivo</th>
+                                                <th class="px-4 py-3 font-semibold">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="perfil-citas-table" class="divide-y divide-border">
+                                            <!-- Injected via JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Tab: Documentos -->
+                            <div id="tab-profile-docs" class="profile-tab-content hidden">
+                                <div class="text-center py-12 bg-gray-50 rounded-2xl border-2 border-dashed border-border">
+                                    <div class="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 border border-border">
+                                        <i data-lucide="file-text" class="w-8 h-8 text-textSecondary"></i>
+                                    </div>
+                                    <h4 class="font-bold text-textPrimary">No hay documentos cargados</h4>
+                                    <p class="text-textSecondary text-sm mb-4">Cargue exámenes, reportes o identificaciones</p>
+                                    <button class="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm">Cargar Archivo</button>
                                 </div>
                             </div>
                         </div>
@@ -795,6 +841,97 @@
                                 <button type="button" onclick="closeModal('modal-editar-cita')" class="flex-1 py-2.5 border border-border text-textSecondary rounded-xl font-bold hover:bg-gray-50">Cancelar</button>
                                 <button type="submit" class="flex-1 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90">Guardar Cambios</button>
                             </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- MODAL: NUEVO EXPEDIENTE -->
+                <div id="modal-nuevo-expediente" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                        <div class="p-5 border-b border-border flex items-center justify-between">
+                            <h3 class="font-bold text-lg text-textPrimary">Crear Nuevo Expediente</h3>
+                            <button onclick="closeModal('modal-nuevo-expediente')" class="text-textSecondary hover:text-danger"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <form onsubmit="event.preventDefault(); guardarExpediente();" class="p-5 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-textSecondary mb-1">Nombre Completo*</label>
+                                <input type="text" id="exp-nombre" required placeholder="Ej: Juan Pérez" class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-textSecondary mb-1">DUI*</label>
+                                    <input type="text" id="exp-dui" required placeholder="00000000-0" class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-textSecondary mb-1">Teléfono*</label>
+                                    <input type="tel" id="exp-tel" required placeholder="0000-0000" class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-textSecondary mb-1">Departamento</label>
+                                <select id="exp-depto" class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary bg-white">
+                                    <option>San Salvador</option><option>La Libertad</option><option>Santa Ana</option><option>Sonsonate</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors">Crear Expediente</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- MODAL: EDITAR PERFIL PACIENTE -->
+                <div id="modal-editar-perfil" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                        <div class="p-5 border-b border-border flex items-center justify-between">
+                            <h3 class="font-bold text-lg text-textPrimary">Editar Información del Paciente</h3>
+                            <button onclick="closeModal('modal-editar-perfil')" class="text-textSecondary hover:text-danger"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <form onsubmit="event.preventDefault(); actualizarPerfilPaciente();" class="p-5 space-y-4">
+                            <input type="hidden" id="edit-perfil-id">
+                            <div>
+                                <label class="block text-sm font-medium text-textSecondary mb-1">Nombre Completo*</label>
+                                <input type="text" id="edit-perfil-nombre" required class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary">
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-textSecondary mb-1">DUI*</label>
+                                    <input type="text" id="edit-perfil-dui" required class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-textSecondary mb-1">Teléfono*</label>
+                                    <input type="tel" id="edit-perfil-tel" required class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-textSecondary mb-1">Departamento</label>
+                                <select id="edit-perfil-depto" class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary bg-white">
+                                    <option>San Salvador</option><option>La Libertad</option><option>Santa Ana</option><option>Sonsonate</option><option>San Miguel</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-3 pt-2">
+                                <button type="button" onclick="closeModal('modal-editar-perfil')" class="flex-1 py-2.5 border border-border text-textSecondary rounded-xl font-bold hover:bg-gray-50">Cancelar</button>
+                                <button type="submit" class="flex-1 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- MODAL: NUEVA NOTA DE EVOLUCIÓN -->
+                <div id="modal-nueva-nota" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+                        <div class="p-5 border-b border-border flex items-center justify-between">
+                            <h3 class="font-bold text-lg text-textPrimary">Nueva Nota de Evolución</h3>
+                            <button onclick="closeModal('modal-nueva-nota')" class="text-textSecondary hover:text-danger"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <form onsubmit="event.preventDefault(); guardarNuevaNota();" class="p-5 space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-textSecondary mb-1">Fecha</label>
+                                <input type="text" id="nota-fecha" disabled class="w-full px-3 py-2 border border-border rounded-lg text-sm bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-textSecondary mb-1">Nota Clínica*</label>
+                                <textarea id="nota-texto" required rows="5" placeholder="Describa la evolución del paciente, signos vitales, cambios en tratamiento..." class="w-full px-3 py-2 border border-border rounded-lg text-sm outline-none focus:border-primary"></textarea>
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-secondary text-white rounded-xl font-bold hover:bg-secondary/90 transition-colors">Guardar Nota</button>
                         </form>
                     </div>
                 </div>
@@ -3706,8 +3843,24 @@
             const medico   = document.getElementById('ol-medico')?.value;
             const urgencia = document.getElementById('ol-urgencia')?.value;
             const examenes = Array.from(selectedExams);
+            
             if(!paciente || examenes.length === 0) { showToast('Seleccione al menos un examen y un paciente', 'error'); return; }
-            const order = { id:'LAB-'+Date.now(), patientName: paciente, doctor: medico, examenes, urgencia, estado:'Solicitado', fecha: new Date().toLocaleDateString('es-SV') };
+
+            // Try to find patient ID
+            const pt = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
+            const foundP = pt.find(p => p.nombre === paciente || p.name === paciente);
+            const patientId = foundP ? foundP.id : 'FC-ANON';
+
+            const order = { 
+                id:'LAB-'+Date.now(), 
+                patientId: patientId,
+                patientName: paciente, 
+                doctor: medico, 
+                examenes, 
+                urgencia, 
+                estado:'Solicitado', 
+                fecha: new Date().toLocaleDateString('es-SV') 
+            };
             let orders = JSON.parse(localStorage.getItem('flycare_lab_orders') || '[]');
             orders.unshift(order);
             localStorage.setItem('flycare_lab_orders', JSON.stringify(orders));
@@ -3812,11 +3965,56 @@
 
         function publicarResultados(orderId) {
             if(!document.getElementById('res-verificado')?.checked) { showToast('Debes verificar los datos primero', 'error'); return; }
+            
             let orders = JSON.parse(localStorage.getItem('flycare_lab_orders') || '[]');
+            const order = orders.find(o => o.id === orderId);
+            if(!order) return;
+
+            // Mark order as published
             orders = orders.map(o => o.id === orderId ? {...o, estado:'Publicado'} : o);
             localStorage.setItem('flycare_lab_orders', JSON.stringify(orders));
-            showToast('Resultados publicados. Médico notificado. 🤖 IA analizando...', 'success');
-            setTimeout(() => showToast('🤖 IA completó el análisis. Ver perfil del paciente.', 'info'), 3000);
+
+            // Capture results for AI and History
+            const results = JSON.parse(localStorage.getItem('flycare_lab_results') || '[]');
+            const hemogramaVals = {};
+            
+            document.querySelectorAll('.res-field').forEach(input => {
+                const paramName = input.closest('tr').querySelector('td').textContent;
+                const value = parseFloat(input.value);
+                const ref = input.dataset.ref;
+                const parts = ref.split('-');
+                let ok = true;
+                if(parts.length === 2) {
+                    const min = parseFloat(parts[0]);
+                    const max = parseFloat(parts[1]);
+                    if(value < min || value > max) ok = false;
+                }
+                hemogramaVals[paramName] = { v: value, ref: ref, ok: ok };
+            });
+
+            const newResult = {
+                id: 'RES-' + Date.now(),
+                orderId: orderId,
+                patientId: order.patientId,
+                tecnico: 'Lic. Alvarado',
+                fecha: new Date().toLocaleString('es-SV'),
+                observaciones: document.getElementById('res-obs').value,
+                resultados: {
+                    'Hemograma': hemogramaVals
+                }
+            };
+
+            results.unshift(newResult);
+            localStorage.setItem('flycare_lab_results', JSON.stringify(results));
+
+            showToast('Resultados publicados. 🤖 IA analizando...', 'success');
+            
+            // Trigger AI Analysis
+            setTimeout(() => {
+                analyzePatientWithAI(order.patientId);
+                showToast('🤖 IA completó el análisis de los nuevos resultados.', 'info');
+            }, 1500);
+
             nav('laboratorio');
         }
 
@@ -4926,6 +5124,178 @@
             }
         });
 
+        // Patient Profile State
+        let currentPatientId = null;
+
+        function verPerfil(id) {
+            currentPatientId = id;
+            const pt = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
+            const patient = pt.find(p => p.id === id);
+            
+            if(!patient) return;
+
+            // Header info
+            document.getElementById('perfil-nombre').textContent = patient.nombre;
+            document.getElementById('perfil-initials').textContent = (patient.nombre || '').substring(0,2).toUpperCase();
+            document.getElementById('perfil-id-badge').textContent = `ID: ${patient.id}`;
+
+            renderProfileData(patient);
+            setProfileTab('general');
+            nav('perfil-paciente');
+        }
+
+        function setProfileTab(tab) {
+            // Update buttons
+            document.querySelectorAll('.profile-tab-btn').forEach(btn => {
+                btn.classList.remove('text-primary', 'border-b-2', 'border-primary');
+                btn.classList.add('text-textSecondary');
+            });
+            
+            const activeBtn = Array.from(document.querySelectorAll('.profile-tab-btn')).find(b => b.textContent.toLowerCase().includes(tab.toLowerCase()) || (tab === 'general' && b.textContent.includes('Información')));
+            if(activeBtn) {
+                activeBtn.classList.add('text-primary', 'border-b-2', 'border-primary');
+                activeBtn.classList.remove('text-textSecondary');
+            }
+
+            // Update content
+            document.querySelectorAll('.profile-tab-content').forEach(c => c.classList.add('hidden'));
+            const target = document.getElementById(`tab-profile-${tab}`);
+            if(target) target.classList.remove('hidden');
+
+            if(tab === 'citas') renderProfileCitas();
+            if(tab === 'expediente') renderProfileExpediente();
+        }
+
+        function renderProfileData(p) {
+            const personal = document.getElementById('perfil-data-personales');
+            const contacto = document.getElementById('perfil-data-contacto');
+            
+            if(personal) {
+                personal.innerHTML = `
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">DUI</span><span class="text-textPrimary font-medium text-sm">${p.dui || '---'}</span></div>
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Fecha Nacimiento</span><span class="text-textPrimary font-medium text-sm">15/04/1990</span></div>
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Género</span><span class="text-textPrimary font-medium text-sm">Masculino</span></div>
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Estado Civil</span><span class="text-textPrimary font-medium text-sm">Soltero</span></div>
+                `;
+            }
+            if(contacto) {
+                contacto.innerHTML = `
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Teléfono</span><span class="text-textPrimary font-medium text-sm">${p.tel || '---'}</span></div>
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Email</span><span class="text-textPrimary font-medium text-sm">${p.email || (p.nombre.toLowerCase().replace(' ','_') + '@email.com')}</span></div>
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Departamento</span><span class="text-textPrimary font-medium text-sm">${p.depto || 'San Salvador'}</span></div>
+                    <div class="flex justify-between border-b border-border/50 pb-2"><span class="text-textSecondary text-sm">Emergencia</span><span class="text-textPrimary font-medium text-sm">Familiar (7777-8888)</span></div>
+                `;
+            }
+        }
+
+        function renderProfileCitas() {
+            const allCitas = JSON.parse(localStorage.getItem('flycare_appointments') || '[]');
+            const pt = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
+            const patient = pt.find(p => p.id === currentPatientId);
+            
+            const citas = allCitas.filter(c => c.paciente === patient.nombre);
+            const tbody = document.getElementById('perfil-citas-table');
+            if(!tbody) return;
+
+            if(citas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-textSecondary italic">No hay historial de citas para este paciente</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = citas.map(c => `
+                <tr class="hover:bg-gray-50/50">
+                    <td class="px-4 py-3">${c.fecha}</td>
+                    <td class="px-4 py-3 font-medium">${c.hora}</td>
+                    <td class="px-4 py-3 text-xs">${c.doctor}</td>
+                    <td class="px-4 py-3 text-xs truncate max-w-[150px]">${c.motivo || 'Consulta General'}</td>
+                    <td class="px-4 py-3">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${c.estado === 'Confirmada' ? 'bg-secondary/10 text-secondary' : 'bg-warning/10 text-warning'}">${c.estado}</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProfileExpediente() {
+            const allNotes = JSON.parse(localStorage.getItem('flycare_evolution_notes') || '{}');
+            const notes = allNotes[currentPatientId] || [];
+            const container = document.getElementById('perfil-expediente-timeline');
+            if(!container) return;
+
+            if(notes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-textSecondary bg-gray-50 rounded-lg border border-dashed border-border">
+                        <p class="text-sm">No hay notas de evolución registradas aún.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = notes.map(n => `
+                <div class="relative">
+                    <div class="absolute -left-8 top-1.5 w-4 h-4 rounded-full bg-secondary border-4 border-white shadow-sm z-10"></div>
+                    <div class="bg-white p-4 rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="text-xs font-bold text-secondary">${n.fecha}</span>
+                            <span class="text-[10px] text-textSecondary flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> Dr. Mendoza</span>
+                        </div>
+                        <p class="text-sm text-textPrimary leading-relaxed">${n.texto}</p>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function abrirEditarPerfil() {
+            const pt = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
+            const p = pt.find(p => p.id === currentPatientId);
+            if(!p) return;
+
+            document.getElementById('edit-perfil-id').value = p.id;
+            document.getElementById('edit-perfil-nombre').value = p.nombre;
+            document.getElementById('edit-perfil-dui').value = p.dui;
+            document.getElementById('edit-perfil-tel').value = p.tel;
+            document.getElementById('edit-perfil-depto').value = p.depto || 'San Salvador';
+
+            openModal('modal-editar-perfil');
+        }
+
+        function actualizarPerfilPaciente() {
+            const pt = JSON.parse(localStorage.getItem('flycare_patients') || '[]');
+            const id = document.getElementById('edit-perfil-id').value;
+            const idx = pt.findIndex(p => p.id === id);
+
+            if(idx !== -1) {
+                pt[idx].nombre = document.getElementById('edit-perfil-nombre').value;
+                pt[idx].dui = document.getElementById('edit-perfil-dui').value;
+                pt[idx].tel = document.getElementById('edit-perfil-tel').value;
+                pt[idx].depto = document.getElementById('edit-perfil-depto').value;
+
+                localStorage.setItem('flycare_patients', JSON.stringify(pt));
+                closeModal('modal-editar-perfil');
+                showToast('Perfil actualizado correctamente', 'success');
+                verPerfil(id); // Reload
+            }
+        }
+
+        function guardarNuevaNota() {
+            const texto = document.getElementById('nota-texto').value;
+            if(!texto) return;
+
+            const allNotes = JSON.parse(localStorage.getItem('flycare_evolution_notes') || '{}');
+            if(!allNotes[currentPatientId]) allNotes[currentPatientId] = [];
+
+            allNotes[currentPatientId].unshift({
+                fecha: new Date().toLocaleString(),
+                texto: texto
+            });
+
+            localStorage.setItem('flycare_evolution_notes', JSON.stringify(allNotes));
+            document.getElementById('nota-texto').value = '';
+            closeModal('modal-nueva-nota');
+            showToast('Nota de evolución guardada', 'success');
+            renderProfileExpediente();
+        }
+
         function init_ambulancias() {
             const am = JSON.parse(localStorage.getItem('flycare_ambulances') || '[]');
             const list = document.getElementById('ambulancias-list');
@@ -5006,7 +5376,7 @@
             if(!container) return;
 
             container.innerHTML = pt.map(p => `
-                <div class="bg-white p-5 rounded-2xl shadow-card border border-border hover:border-primary/50 transition-all group cursor-pointer" onclick="nav('perfil-paciente')">
+                <div class="bg-white p-5 rounded-2xl shadow-card border border-border hover:border-primary/50 transition-all group cursor-pointer" onclick="verPerfil('${p.id}')">
                     <div class="flex items-center gap-4 mb-4">
                         <div class="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg">${(p.nombre||'').substring(0,2).toUpperCase()}</div>
                         <div>
